@@ -211,19 +211,22 @@ const createCardOrder = async (session) => {
 // @access  Protected/User
 exports.webhookCheckout = asyncHandler(async (req, res, next) => {
   const sig = req.headers['stripe-signature'];
+  const bodyString = JSON.stringify(req.body);
 
+  // Create a readable stream from the JSON string
+  const readableStream = Readable.from(bodyString);
   let event;
 
   try {
     event = stripe.webhooks.constructEvent(
-      req.body,
+      readableStream,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-  console.log(event.type);
+  
   if (event.type === 'checkout.session.completed') {
     //  Create order
     createCardOrder(event.data.object);
