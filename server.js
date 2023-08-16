@@ -36,8 +36,7 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'uploads')));
 
 
-// Middlewares
-app.use(express.json());
+
 
 app.use(cors());
 app.options('*', cors());
@@ -50,6 +49,8 @@ app.post(
   webhookCheckout
 );
 
+// Middlewares
+app.use(express.json());
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
