@@ -1,5 +1,4 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET);
-const { Readable } = require('stream');
 const asyncHandler = require('express-async-handler');
 const factory = require('./handlersFactory');
 const ApiError = require('../utils/apiError');
@@ -166,7 +165,7 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
     cancel_url: `${req.protocol}://${req.get("host")}/cart`,
     customer_email: req.user.email,
     client_reference_id: req.params.cartId,
-    metadata: req.body.shippingAddress,
+    metadata: JSON.stringify(req.body.shippingAddress),
   });
 
   // 4) send session to response
@@ -212,15 +211,12 @@ const createCardOrder = async (session) => {
 // @access  Protected/User
 exports.webhookCheckout = asyncHandler(async (req, res, next) => {
   const sig = req.headers['stripe-signature'];
-  const bodyString = JSON.stringify(req.body);
 
-  // Create a readable stream from the JSON string
-  const readableStream = Readable.from(bodyString);
   let event;
 
   try {
     event = stripe.webhooks.constructEvent(
-      readableStream,
+      req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
