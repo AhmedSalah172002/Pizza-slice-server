@@ -1,4 +1,8 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET);
+var QRCode = require('qrcode')
+const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
+
 const asyncHandler = require('express-async-handler');
 const factory = require('./handlersFactory');
 const ApiError = require('../utils/apiError');
@@ -31,12 +35,50 @@ exports.createCashOrder = asyncHandler(async (req, res, next) => {
 
   const totalOrderPrice = cartPrice + taxPrice + shippingPrice;
 
+  //generat Qr code in base 64 string
+
+  function generateQRCode() {
+    return new Promise((resolve, reject) => {
+      QRCode.toDataURL(`${process.env.BASE_URL}/api/v1/orders/${req.params.cartId}/deliver`, function (err, url) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(url);
+        }
+      });
+    });
+  }
+      const QrScan = await generateQRCode();
+
+      //convert base64 string into image
+    const base64ImageData = QrScan;
+    const base64Data = base64ImageData.replace(/^data:image\/\w+;base64,/, '');
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+    const filename=`QrCodeimage-${uuidv4()}-${Date.now()}.jpg`
+    const filePath = `uploads/qrCodes/${filename}`; 
+
+    function generateQRCodeImage() {
+      return new Promise((resolve, reject) => {
+        fs.writeFile(filePath, imageBuffer, (error) => {
+          if (error) {
+            reject(err);
+          } else {
+            resolve(filePath.split("/")[2]);
+          }
+        });
+      });
+    }
+
+ 
+    const qrCode=await generateQRCodeImage()
+
   // 3) Create order with default paymentMethodType cash
   const order = await Order.create({
     user: req.user._id,
     cartItems: cart.cartItems,
     shippingAddress: req.body.shippingAddress,
     totalOrderPrice,
+    qrCode,
   });
 
   // 4) After creating order, decrement product quantity, increment product sold

@@ -44,6 +44,7 @@ const orderSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    qrCode:String,
     paidAt: Date,
     isDelivered: {
       type: Boolean,
@@ -65,6 +66,28 @@ orderSchema.pre(/^find/, function (next) {
 
   next();
 });
+
+
+
+
+
+
+const setImageURL = (doc) => {
+  if (doc.qrCode) {
+    const imageUrl = `${process.env.BASE_URL}/qrCodes/${doc.qrCode}`;
+    doc.qrCode = imageUrl;
+  }
+};
+// findOne, findAll and update
+orderSchema.post('init', (doc) => {
+  setImageURL(doc);
+});
+
+// create
+orderSchema.post('save', (doc) => {
+  setImageURL(doc);
+});
+
 
 module.exports = mongoose.model('Order', orderSchema);
 
