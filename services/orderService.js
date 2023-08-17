@@ -39,7 +39,7 @@ exports.createCashOrder = asyncHandler(async (req, res, next) => {
 
   function generateQRCode() {
     return new Promise((resolve, reject) => {
-      QRCode.toDataURL(`shippingAddress: ${req.body.shippingAddress} - totalOrderPric= ${totalOrderPrice} - paymentMethodType: cash`, function (err, url) {
+      QRCode.toDataURL(`shippingAddress: ${JSON.stringify(req.body.shippingAddress)} - totalOrderPric= ${totalOrderPrice} - paymentMethodType: cash`, function (err, url) {
         if (err) {
           reject(err);
         } else {
