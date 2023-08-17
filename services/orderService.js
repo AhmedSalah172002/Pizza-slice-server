@@ -39,7 +39,7 @@ exports.createCashOrder = asyncHandler(async (req, res, next) => {
 
   function generateQRCode() {
     return new Promise((resolve, reject) => {
-      QRCode.toDataURL(`${process.env.BASE_URL}/api/v1/orders/${req.params.cartId}/deliver`, function (err, url) {
+      QRCode.toDataURL(`shippingAddress: ${req.body.shippingAddress} - totalOrderPric= ${totalOrderPric} - paymentMethodType: cash`, function (err, url) {
         if (err) {
           reject(err);
         } else {
@@ -217,20 +217,60 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
 const createCardOrder = async (session) => {
   const cartId = session.client_reference_id;
   const shippingAddress = session.metadata;
-  const oderPrice = session.amount_total / 100;
+  const orderPrice = session.amount_total / 100;
 
   const cart = await Cart.findById(cartId);
   const user = await User.findOne({ email: session.customer_email });
+
+//generat Qr code in base 64 string
+
+  function generateQRCode() {
+    return new Promise((resolve, reject) => {
+      QRCode.toDataURL(`shippingAddress: ${shippingAddress} - totalOrderPric= ${orderPrice} - paymentMethodType: card`, function (err, url) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(url);
+        }
+      });
+    });
+  }
+      const QrScan = await generateQRCode();
+
+      //convert base64 string into image
+    const base64ImageData = QrScan;
+    const base64Data = base64ImageData.replace(/^data:image\/\w+;base64,/, '');
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+    const filename=`QrCodeimage-${uuidv4()}-${Date.now()}.jpg`
+    const filePath = `uploads/qrCodes/${filename}`; 
+
+    function generateQRCodeImage() {
+      return new Promise((resolve, reject) => {
+        fs.writeFile(filePath, imageBuffer, (error) => {
+          if (error) {
+            reject(err);
+          } else {
+            resolve(filePath.split("/")[2]);
+          }
+        });
+      });
+    }
+
+ 
+    const qrCode=await generateQRCodeImage()
+
+ 
 
   // 3) Create order with default paymentMethodType card
   const order = await Order.create({
     user: user._id,
     cartItems: cart.cartItems,
     shippingAddress,
-    totalOrderPrice: oderPrice,
+    totalOrderPrice: orderPrice,
     isPaid: true,
     paidAt: Date.now(),
     paymentMethodType: 'card',
+    qrCode,
   });
 
   // 4) After creating order, decrement product quantity, increment product sold
