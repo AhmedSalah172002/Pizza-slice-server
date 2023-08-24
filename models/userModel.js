@@ -73,7 +73,6 @@ userSchema.pre('save', async function (next) {
 const setImageURL = (doc) => {
   if (doc.profileImg) {
     const imageUrl = `${process.env.BASE_URL}/users/${doc.profileImg}`;
-    console.log(imageUrl);
     doc.profileImg = imageUrl;
   }
 };
