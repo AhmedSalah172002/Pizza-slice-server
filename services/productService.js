@@ -19,7 +19,7 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
     .resize(600, 600)
     .toFormat('jpeg')
     .jpeg({ quality: 95 })
-    .toFile(`${process.env.GITHUB}${filename}`);
+    .toFile(`uploads/products/${filename}`);
   
     req.body.image = filename;
  }
