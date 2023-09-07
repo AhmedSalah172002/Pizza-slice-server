@@ -3,30 +3,53 @@ const ApiError = require('../utils/apiError');
 const ApiFeatures = require('../utils/apiFeatures');
 
 
-exports.getAll=(Model) =>
-asyncHandler(async(req,res,next)=>{
-
-  let filter = {};
+exports.getAll = (Model) =>
+  asyncHandler(async (req, res, next) => {
+    let filter = {};
     if (req.filterObj) {
       filter = req.filterObj;
     }
 
-    const documentsCounts = await Model.countDocuments();
-    const apiFeatures =new ApiFeatures(Model.find(filter), req.query)
-    .paginate(documentsCounts)
+    const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
       .filter()
       .search()
       .limitFields()
       .sort();
 
-       // Execute query
-    const { mongooseQuery, paginationResult } = apiFeatures;
-    const documents = await mongooseQuery;
+    // Execute query
+    let { mongooseQuery } = apiFeatures;
+    let documents = await mongooseQuery;
 
-    res
-      .status(200)
-      .json({ results: documents.length, paginationResult, data: documents });
-})
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 5;
+    const skip = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Apply pagination to the documents array
+    const paginatedDocuments = documents.slice(skip, skip + limit);
+
+    // Pagination result
+    const pagination = {};
+    pagination.currentPage = page;
+    pagination.limit = limit;
+    pagination.numberOfPages = Math.ceil(documents.length / limit);
+
+    if (endIndex < documents.length) {
+      pagination.next = page + 1;
+    }
+    if (skip > 0) {
+      pagination.prev = page - 1;
+    }
+
+    const paginationResult = pagination;
+
+    res.status(200).json({
+      results: paginatedDocuments.length,
+      paginationResult,
+      data: paginatedDocuments,
+    });
+  });
+
 
 exports.createOne=(Model) =>
 asyncHandler(async(req,res,next)=>{

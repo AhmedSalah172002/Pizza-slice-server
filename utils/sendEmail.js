@@ -23,7 +23,6 @@ const sendEmail = async (options) => {
           <p>Thanks for helping us keep your account secure</p>. <br/> <h3>The ${process.env.COMPANY_NAME} Team </h3>`
         });
 
-    
   };
   
   module.exports = sendEmail;

@@ -203,7 +203,7 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
       },
     ],
     mode: 'payment',
-    success_url: `${req.protocol}://${req.get("host")}/user/allorders`,
+    success_url: `${req.protocol}://${req.get("host")}/Myprofile`,
     cancel_url: `${req.protocol}://${req.get("host")}/cart`,
     customer_email: req.user.email,
     client_reference_id: req.params.cartId,
@@ -226,7 +226,7 @@ const createCardOrder = async (session) => {
 
   function generateQRCode() {
     return new Promise((resolve, reject) => {
-      QRCode.toDataURL(`shippingAddress: ${JSON.stringify(shippingAddress)} - totalOrderPrice= ${orderPrice} - paymentMethodType: card`, function (err, url) {
+      QRCode.toDataURL(`shippingAddress: ${JSON.stringify(shippingAddress)} <br> - totalOrderPrice= ${orderPrice} <br> - paymentMethodType: card`, function (err, url) {
         if (err) {
           reject(err);
         } else {

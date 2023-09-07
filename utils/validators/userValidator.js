@@ -69,13 +69,15 @@ exports.updateUserValidator = [
       return true;
     }),
   check('email')
+  .optional()
     .notEmpty()
     .withMessage('الايميل مطلوب')
     .isEmail()
     .withMessage('عنوان بريد غير صالح')
     .custom((val) =>
       User.findOne({ email: val }).then((user) => {
-        if (user) {
+        if (user && user.email !== val) {
+          
           return Promise.reject(new Error('هذا الايميل موجود بالفعل'));
         }
       })
@@ -155,5 +157,42 @@ exports.updateLoggedUserValidator = [
     .withMessage('رقم هاتف غير صالح (يجب ان يكون الرقم مصري)'),
     check('profileImg').optional(),
 
+  validatorMiddleware,
+];
+
+
+
+
+
+exports.changeMyPasswordValidator = [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('يجب عليك ان تدخل الباسورد الحالي'),
+  body('passwordConfirm')
+    .notEmpty()
+    .withMessage('يجب مطابقة الباسورد'),
+  body('password')
+    .notEmpty()
+    .withMessage('الباسورد مطلوب')
+    .custom(async (val, { req }) => {
+      // 1) Verify current password
+      const user = await User.findById(req.user._id);
+      if (!user) {
+        throw new Error('There is no user for this id');
+      }
+      const isCorrectPassword = await bcrypt.compare(
+        req.body.currentPassword,
+        user.password
+      );
+      if (!isCorrectPassword) {
+        throw new Error('الباسورد غير صحيح');
+      }
+
+      // 2) Verify password confirm
+      if (val !== req.body.passwordConfirm) {
+        throw new Error('الباسورد غير متطابق');
+      }
+      return true;
+    }),
   validatorMiddleware,
 ];

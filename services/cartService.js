@@ -19,7 +19,7 @@ const calcTotalCartPrice = (cart) => {
 // @route   POST /api/v1/cart
 // @access  Private/User
 exports.addProductToCart = asyncHandler(async (req, res, next) => {
-  const { productId, size } = req.body;
+  const { productId, size ,quantity } = req.body;
   const product = await Product.findById(productId);
 
   // 1) Get Cart for logged user
@@ -35,7 +35,7 @@ exports.addProductToCart = asyncHandler(async (req, res, next) => {
     // create cart fot logged user with product
     cart = await Cart.create({
       user: req.user._id,
-      cartItems: [{ product: productId, size, price }],
+      cartItems: [{ product: productId, size,quantity, price }],
     });
   } else {
     // product exist in cart, update product quantity
@@ -45,11 +45,11 @@ exports.addProductToCart = asyncHandler(async (req, res, next) => {
 
     if (productIndex > -1) {
       const cartItem = cart.cartItems[productIndex];
-      cartItem.quantity += 1;
+      cartItem.quantity += quantity;
       cart.cartItems[productIndex] = cartItem;
     } else {
       // product not exist in cart,  push product to cartItems array
-      cart.cartItems.push({ product: productId, size, price });
+      cart.cartItems.push({ product: productId, size,quantity, price });
     }
   }
 

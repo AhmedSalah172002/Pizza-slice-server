@@ -73,13 +73,13 @@ exports.updateAddress = asyncHandler(async (req, res, next) => {
 // @route   get /api/v1/addresses/:addressId
 // @access  Protected/User
 exports.getSpecificAddress = asyncHandler(async (req, res, next) => {
-  const user = await User.findOne(
-    {_id:req.user._id , "addresses._id":req.params.addressId}
-  );
+  const user = await User.findById(req.user._id);
+
+  const Adress=user.addresses.filter((e)=> e._id.toString() === req.params.addressId.toString() )
 
   res.status(200).json({
     status: 'success',
-    data: user.addresses,
+    data: Adress,
   });
 });
 

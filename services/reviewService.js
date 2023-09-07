@@ -40,11 +40,13 @@ exports.createReview = asyncHandler(async(req,res,next)=>{
   const reviews= await Review.find({product:req.body.product});
   if(reviews){
     let count=reviews.length;
-    let result= reviews.reduce((crr,acc)=> crr.ratings+acc.ratings);
+    let sum=0
+    let result= count > 1 ? reviews.map((e)=> sum+=e.ratings) :reviews[0].ratings;
     const product=await Product.findByIdAndUpdate(req.body.product,{
-      ratingsAverage: (result/count).toFixed(2),
+      ratingsAverage: (result[result.length-1]/count).toFixed(2),
       ratingsQuantity: count,
     },{new:true})
+    
   }
   res.status(201).json({ data: data });
 })
@@ -65,12 +67,15 @@ exports.updateReview = asyncHandler(async(req,res,next)=>{
   const reviews= await Review.find({product:productId});
   if(reviews){
     let count=reviews.length;
-    let result= reviews.reduce((crr,acc)=> crr.ratings+acc.ratings);
-    const product=await Product.findByIdAndUpdate(productId,{
-      ratingsAverage: (result/count).toFixed(2),
+    let sum=0
+    let result= count > 1 ? reviews.map((e)=> sum+=e.ratings) :reviews[0].ratings;
+    const product=await Product.findByIdAndUpdate(req.body.product,{
+      ratingsAverage: (result[result.length-1]/count).toFixed(2),
       ratingsQuantity: count,
     },{new:true})
+    
   }
+
 
   res.status(200).json({ data: data });
 })
@@ -97,13 +102,13 @@ exports.deleteReview =   asyncHandler(async (req, res, next) => {
   if(reviews){
     let result
     let count=reviews.length;
-    if(count > 1)
-     result= reviews.reduce((crr,acc)=> crr.ratings+acc.ratings);
-     else result=reviews[0].ratings
-    const product=await Product.findByIdAndUpdate(productId,{
-      ratingsAverage: (result/count).toFixed(2),
+    let sum=0
+    result= count > 1 ? reviews.map((e)=> sum+=e.ratings) :reviews[0].ratings;
+    const product=await Product.findByIdAndUpdate(req.body.product,{
+      ratingsAverage: (result[result.length-1]/count).toFixed(2),
       ratingsQuantity: count,
     },{new:true})
+    
   }
 
   res.status(204).send();

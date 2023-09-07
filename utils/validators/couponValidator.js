@@ -50,7 +50,7 @@ exports.updateCouponValidator = [
       if(val < 1 || val > 100){
         throw new Error('يجب أن تكون نسبة الخصم من 1 الي 100');
       }
-      return
+      return true;
     }),
   validatorMiddleware,
 ];

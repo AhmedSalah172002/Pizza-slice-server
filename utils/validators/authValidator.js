@@ -6,9 +6,9 @@ const User = require('../../models/userModel');
 exports.signupValidator = [
   check('name')
     .notEmpty()
-    .withMessage('User required')
+    .withMessage('الاسم مطلوب')
     .isLength({ min: 3 })
-    .withMessage('Too short User name')
+    .withMessage('الاسم أقصر من اللازم')
     .custom((val, { req }) => {
       req.body.slug = slugify(val);
       return true;
@@ -16,32 +16,35 @@ exports.signupValidator = [
 
   check('email')
     .notEmpty()
-    .withMessage('Email required')
+    .withMessage('الايميل مطلوب')
     .isEmail()
-    .withMessage('Invalid email address')
+    .withMessage('عنوان بريد غير صالح')
     .custom((val) =>
       User.findOne({ email: val }).then((user) => {
         if (user) {
-          return Promise.reject(new Error('E-mail already in user'));
+          return Promise.reject(new Error('هذا الايميل مستخدم من قبل'));
         }
       })
     ),
 
   check('password')
     .notEmpty()
-    .withMessage('Password required')
+    .withMessage('كلمة المرور مطلوبة')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters')
+    .withMessage('يجب أن تكون كلمة المرور علي الأقل 6 اخرف')
     .custom((password, { req }) => {
       if (password !== req.body.passwordConfirm) {
-        throw new Error('Password Confirmation incorrect');
+        throw new Error('كلمة المرور غير متطابقة');
       }
       return true;
     }),
-
+    check('phone')
+    .optional()
+    .isMobilePhone(['ar-EG'])
+    .withMessage('رقم هاتف غير صالح (يجب ان يكون الرقم مصري)'),
   check('passwordConfirm')
     .notEmpty()
-    .withMessage('Password confirmation required'),
+    .withMessage('من فضلك قم بتأكيد كلمة المرور'),
 
   validatorMiddleware,
 ];
@@ -49,15 +52,15 @@ exports.signupValidator = [
 exports.loginValidator = [
   check('email')
     .notEmpty()
-    .withMessage('Email required')
+    .withMessage('الايميل مطلوب')
     .isEmail()
-    .withMessage('Invalid email address'),
+    .withMessage('عنوان بريد غير صالح'),
 
   check('password')
     .notEmpty()
-    .withMessage('Password required')
+    .withMessage('كلمة المرور مطلوبة')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters'),
+    .withMessage('يجب أن تكون كلمة المرور علي الأقل 6 اخرف'),
 
   validatorMiddleware,
 ];
