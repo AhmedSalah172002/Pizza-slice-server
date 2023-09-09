@@ -41,7 +41,9 @@ exports.createReview = asyncHandler(async(req,res,next)=>{
   if(reviews){
     let count=reviews.length;
     let sum=0
-    let result= count > 1 ? reviews.map((e)=> sum+=e.ratings) :reviews[0].ratings;
+    let result= count > 1 ? reviews.map((e)=> sum+=e.ratings) :[reviews[0].ratings];
+    console.log((result[result.length-1]/count).toFixed(2));
+    console.log(reviews);
     const product=await Product.findByIdAndUpdate(req.body.product,{
       ratingsAverage: (result[result.length-1]/count).toFixed(2),
       ratingsQuantity: count,
@@ -104,6 +106,7 @@ exports.deleteReview =   asyncHandler(async (req, res, next) => {
     let count=reviews.length;
     let sum=0
     result= count > 1 ? reviews.map((e)=> sum+=e.ratings) :reviews[0].ratings;
+ 
     const product=await Product.findByIdAndUpdate(req.body.product,{
       ratingsAverage: (result[result.length-1]/count).toFixed(2),
       ratingsQuantity: count,
