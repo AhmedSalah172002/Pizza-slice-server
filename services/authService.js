@@ -20,6 +20,7 @@ exports.signup = asyncHandler(async (req, res, next) => {
         name: req.body.name,
         email: req.body.email,
         password: req.body.password,
+        phone:req.body.phone,
     });
 
     const token=createToken(user._id);
